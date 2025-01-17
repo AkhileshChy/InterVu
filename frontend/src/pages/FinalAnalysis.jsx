@@ -23,6 +23,7 @@ function FinalAnalysis() {
         }
         const data = await response.json();
         setApiData(data);
+        console.log(data);
 
         // Load questions from localStorage
         const questions = JSON.parse(localStorage.getItem('interviewQuestions') || '[]');

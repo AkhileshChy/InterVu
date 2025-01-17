@@ -1,34 +1,79 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { User, Lock, Mail } from 'lucide-react'
+import { Mail, Lock, AlertCircle } from 'lucide-react'
+import { AuthContext } from '../context/AuthContext'
 
 export default function SignUp() {
   const navigate = useNavigate()
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [isAnimating, setIsAnimating] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const { login } = useContext(AuthContext);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    if (name === 'email') {
+      setEmail(value)
+    } else if (name === 'password') {
+      setPassword(value)
+    } else if (name === 'confirmPassword') {
+      setConfirmPassword(value)
+    }
+    // Clear error when user starts typing
+    if (error) setError('')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setIsAnimating(true)
+    
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
 
-    // Wait for animation to complete before navigating
-    setTimeout(() => {
-      navigate('/')
-    }, 1000) // Match this with animation duration
+    setIsLoading(true)
+    setError('')
+
+    try {
+      const formData = new FormData()
+      formData.append('email', email)
+      formData.append('password', password)
+      console.log(formData)
+      
+      const response = await fetch('https://plugin-5vmd.onrender.com/signup', {
+        method: 'POST',
+        body: formData
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed')
+      }
+
+      // Store the JWT token
+      localStorage.setItem('token', data.token)
+      
+      // Start animation
+      setIsAnimating(true)
+      await login()
+
+      // Wait for animation to complete before navigating
+      setTimeout(() => {
+        navigate('/')
+      }, 1000)
+    } catch (err) {
+      setError(err.message || 'An error occurred during registration')
+      setIsAnimating(false)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -78,31 +123,25 @@ export default function SignUp() {
           <div className="w-full max-w-md">
             <h2 className="text-5xl font-bold mb-12 text-white">Sign Up</h2>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="relative">
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="w-full bg-gray-800 bg-opacity-40 rounded-lg border border-gray-600 text-white px-4 py-3 pl-10 focus:outline-none focus:border-purple-500 text-lg"
-                  placeholder="Username"
-                  required
-                />
-                <User className="absolute left-3 top-3.5 text-gray-400" size={20} />
+            {error && (
+              <div className="mb-6 bg-red-500/10 border border-red-500 rounded-lg p-4 flex items-center gap-3 text-red-500">
+                <AlertCircle size={20} />
+                <p>{error}</p>
               </div>
+            )}
 
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="relative">
                 <input
                   type="email"
                   id="email"
                   name="email"
-                  value={formData.email}
+                  value={email}
                   onChange={handleChange}
                   className="w-full bg-gray-800 bg-opacity-40 rounded-lg border border-gray-600 text-white px-4 py-3 pl-10 focus:outline-none focus:border-purple-500 text-lg"
                   placeholder="Email"
                   required
+                  disabled={isLoading}
                 />
                 <Mail className="absolute left-3 top-3.5 text-gray-400" size={20} />
               </div>
@@ -112,11 +151,12 @@ export default function SignUp() {
                   type="password"
                   id="password"
                   name="password"
-                  value={formData.password}
+                  value={password}
                   onChange={handleChange}
                   className="w-full bg-gray-800 bg-opacity-40 rounded-lg border border-gray-600 text-white px-4 py-3 pl-10 focus:outline-none focus:border-purple-500 text-lg"
                   placeholder="Password"
                   required
+                  disabled={isLoading}
                 />
                 <Lock className="absolute left-3 top-3.5 text-gray-400" size={20} />
               </div>
@@ -126,22 +166,24 @@ export default function SignUp() {
                   type="password"
                   id="confirmPassword"
                   name="confirmPassword"
-                  value={formData.confirmPassword}
+                  value={confirmPassword}
                   onChange={handleChange}
                   className="w-full bg-gray-800 bg-opacity-40 rounded-lg border border-gray-600 text-white px-4 py-3 pl-10 focus:outline-none focus:border-purple-500 text-lg"
                   placeholder="Confirm Password"
                   required
+                  disabled={isLoading}
                 />
                 <Lock className="absolute left-3 top-3.5 text-gray-400" size={20} />
               </div>
 
               <motion.button
                 type="submit"
-                className="w-full py-4 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-medium hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 mt-8"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                className="w-full py-4 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-medium hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 mt-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={{ scale: isLoading ? 1 : 1.05 }}
+                whileTap={{ scale: isLoading ? 1 : 0.95 }}
+                disabled={isLoading}
               >
-                Create Account
+                {isLoading ? 'Creating Account...' : 'Create Account'}
               </motion.button>
 
               <p className="text-gray-400 text-center text-lg mt-6">
@@ -157,4 +199,3 @@ export default function SignUp() {
     </div>
   )
 }
-

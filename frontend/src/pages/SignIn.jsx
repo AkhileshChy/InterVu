@@ -1,32 +1,67 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { User, Lock } from 'lucide-react'
+import { User, Lock, AlertCircle } from 'lucide-react'
+import { AuthContext } from '../context/AuthContext'
 
 export default function SignIn() {
   const navigate = useNavigate()
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-  })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const { login } = useContext(AuthContext);
+
   const [isAnimating, setIsAnimating] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    if (name === 'email') {
+      setEmail(value)
+    } else if (name === 'password') {
+      setPassword(value)
+    }
+    // Clear error when user starts typing
+    if (error) setError('')
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setIsAnimating(true)
+    setIsLoading(true)
+    setError('')
 
-    // Wait for animation to complete before navigating
-    setTimeout(() => {
-      navigate('/')
-    }, 1000) // Match this with animation duration
+    try {
+      const formData = new FormData()
+      formData.append('email', email)
+      formData.append('password', password)
+      const response = await fetch('https://plugin-5vmd.onrender.com/login', {
+        method: 'POST',
+        body: formData
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Authentication failed')
+      }
+
+      // Store the JWT token
+      localStorage.setItem('token', data.token)
+      
+      // Start animation
+      setIsAnimating(true)
+      await login()
+
+      // Wait for animation to complete before navigating
+      setTimeout(() => {
+        navigate('/')
+      }, 1000)
+    } catch (err) {
+      setError(err.message || 'An error occurred during sign in')
+      setIsAnimating(false)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -49,17 +84,25 @@ export default function SignIn() {
           <div className="w-full max-w-md">
             <h2 className="text-5xl font-bold mb-12 text-white">Login</h2>
 
+            {error && (
+              <div className="mb-6 bg-red-500/10 border border-red-500 rounded-lg p-4 flex items-center gap-3 text-red-500">
+                <AlertCircle size={20} />
+                <p>{error}</p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-8">
               <div>
                 <div className="relative">
                   <input
                     type="text"
-                    id="username"
-                    name="username"
-                    value={formData.username}
+                    id="email"
+                    name="email"
+                    value={email}
                     onChange={handleChange}
                     className="w-full bg-gray-800 bg-opacity-40 rounded-lg border border-gray-600 text-white px-4 py-3 pl-10 focus:outline-none focus:border-purple-500 text-lg"
                     placeholder="Username"
+                    disabled={isLoading}
                   />
                   <User className="absolute left-3 top-3.5 text-gray-400" size={20} />
                 </div>
@@ -71,10 +114,11 @@ export default function SignIn() {
                     type="password"
                     id="password"
                     name="password"
-                    value={formData.password}
+                    value={password}
                     onChange={handleChange}
                     className="w-full bg-gray-800 bg-opacity-40 rounded-lg border border-gray-600 text-white px-4 py-3 pl-10 focus:outline-none focus:border-purple-500 text-lg"
                     placeholder="Password"
+                    disabled={isLoading}
                   />
                   <Lock className="absolute left-3 top-3.5 text-gray-400" size={20} />
                 </div>
@@ -82,11 +126,12 @@ export default function SignIn() {
 
               <motion.button
                 type="submit"
-                className="w-full py-4 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-medium hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 mt-12"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                className="w-full py-4 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-lg font-medium hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 mt-12 disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={{ scale: isLoading ? 1 : 1.05 }}
+                whileTap={{ scale: isLoading ? 1 : 0.95 }}
+                disabled={isLoading}
               >
-                Login
+                {isLoading ? 'Signing in...' : 'Login'}
               </motion.button>
 
               <p className="text-gray-400 text-center text-lg mt-8">
@@ -129,4 +174,3 @@ export default function SignIn() {
     </div>
   )
 }
-

@@ -1,20 +1,21 @@
-import React, { useState } from 'react'
-import { Button } from "./ui/button"
+import React, { useState } from 'react';
+import { Button } from './ui/button';
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
-} from "./ui/sheet"
-import { Menu } from 'lucide-react'
+} from './ui/sheet';
+import { Menu } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const navItems = [
-  { name: 'Home', href: '/' },
-  { name: 'About', href: '/about' },
-  { name: 'Contact', href: '/contact' },
-]
+  { name: 'Home', to: '/' },
+  { name: 'About', to: '/about' },
+  { name: 'Contact', to: '/contact' },
+];
 
 const Navbar = () => {
-  const [activePage, setActivePage] = useState('/')
+  const [activePage, setActivePage] = useState('/');
 
   return (
     <nav className="bg-purple-50 shadow-md w-full fixed top-0 left-0 z-10">
@@ -22,9 +23,9 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <a href="/" className="font-extrabold text-3xl text-indigo-600">
+            <Link to="/" className="font-extrabold text-3xl text-indigo-600">
               INTERVU
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Navigation Menu */}
@@ -32,20 +33,17 @@ const Navbar = () => {
             <ul className="flex space-x-8">
               {navItems.map((item) => (
                 <li key={item.name}>
-                  <a
-                    href={item.href}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setActivePage(item.href)
-                    }}
+                  <Link
+                    to={item.to}
                     className={`text-lg font-medium transition-colors duration-200 ${
-                      activePage === item.href
+                      activePage === item.to
                         ? 'text-indigo-600 border-b-2 border-indigo-600'
                         : 'text-gray-700 hover:text-indigo-600'
                     }`}
+                    onClick={() => setActivePage(item.to)}
                   >
                     {item.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -62,21 +60,18 @@ const Navbar = () => {
               <SheetContent side="right">
                 <nav className="flex flex-col space-y-4 mt-8">
                   {navItems.map((item) => (
-                    <a
+                    <Link
                       key={item.name}
-                      href={item.href}
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setActivePage(item.href)
-                      }}
+                      to={item.to}
+                      onClick={() => setActivePage(item.to)}
                       className={`text-lg font-medium transition-colors duration-200 ${
-                        activePage === item.href
+                        activePage === item.to
                           ? 'text-indigo-600'
                           : 'text-gray-700 hover:text-indigo-600'
                       }`}
                     >
                       {item.name}
-                    </a>
+                    </Link>
                   ))}
                 </nav>
               </SheetContent>
@@ -85,8 +80,7 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
-
+export default Navbar;

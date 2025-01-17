@@ -24,6 +24,7 @@ const Interview = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { title } = location.state || {};
+  // console.log(title)
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -45,7 +46,7 @@ const Interview = () => {
 
   const generateSpeech = async (data) => {
     setLoading(true);
-    const apiKey = "sk_5d08a02c14918f07711553b8f59552ab2c4c7c939510104b";
+    const apiKey = "sk_17dc5ec3542697a213425f62f3ba91bfc4168cf0894e322d";
     const voiceId = "Xb7hH8MSUJpSbSDYk0k2";
     try {
       const response = await axios.post(
@@ -130,6 +131,7 @@ const Interview = () => {
     setIsBlurred(true);
     try {
       const videoBlob = new Blob(recordedChunks, { type: "video/webm" });
+      const audioBlob = new Blob(recordedChunks, { type: "audio/wav" });
 
       // Store the video in IndexedDB
       await storeVideo(currentQuestionIndex, videoBlob);
@@ -141,9 +143,9 @@ const Interview = () => {
         localStorage.setItem('interviewQuestions', JSON.stringify(updated));
         return updated;
       });
-
+      
       const formData = new FormData();
-      formData.append("audio", videoBlob, "recording.webm");
+      formData.append("audio", audioBlob, "recording.wav");
       formData.append("previous", question);
       formData.append("domain", `${title}`);
 
