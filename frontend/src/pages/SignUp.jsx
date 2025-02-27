@@ -48,9 +48,10 @@ export default function SignUp() {
       
       const response = await fetch('https://plugin-5vmd.onrender.com/signup', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: { 'Accept': 'application/json' }
       })
-
+      console.log(response)
       const data = await response.json()
 
       if (!response.ok) {

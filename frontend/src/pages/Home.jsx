@@ -20,7 +20,7 @@ const Home = () => {
                         Indian professionals
                     </span>
                 </p>
-                <Link to='/domain'>
+                <Link to='/login'>
                     <button
                         className="text-white bg-indigo-600 px-10 py-4 rounded-lg hover:text-black
                     transition-all duration-300 transform hover:scale-105 mt-8 z-10"

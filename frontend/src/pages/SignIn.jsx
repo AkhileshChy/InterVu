@@ -2,13 +2,13 @@ import React, { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { User, Lock, AlertCircle } from 'lucide-react'
-import { AuthContext } from '../context/AuthContext'
+// import { AuthContext } from '../context/AuthContext'
 
-export default function SignIn() {
+export default function SignIn() {  
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { login } = useContext(AuthContext);
+  // const { login } = useContext(AuthContext);
 
   const [isAnimating, setIsAnimating] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -30,38 +30,52 @@ export default function SignIn() {
     setIsLoading(true)
     setError('')
 
-    try {
-      const formData = new FormData()
-      formData.append('email', email)
-      formData.append('password', password)
-      const response = await fetch('https://plugin-5vmd.onrender.com/login', {
-        method: 'POST',
-        body: formData
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Authentication failed')
-      }
-
-      // Store the JWT token
-      localStorage.setItem('token', data.token)
-      
-      // Start animation
-      setIsAnimating(true)
-      await login()
-
-      // Wait for animation to complete before navigating
-      setTimeout(() => {
-        navigate('/')
-      }, 1000)
-    } catch (err) {
-      setError(err.message || 'An error occurred during sign in')
-      setIsAnimating(false)
-    } finally {
+    if (email === "akhil1234@gmail.com" && password === "123") {
       setIsLoading(false)
+      navigate('/domain')
+      setIsAnimating(true)
+      // await login()
+      setTimeout(() => {
+        setIsAnimating(false)
+      }, 1000)
     }
+    else {
+      setError('Invalid credentials')
+      setIsLoading(false)
+      return
+    }
+    // try {
+    //   const formData = new FormData()
+    //   formData.append('email', email)
+    //   formData.append('password', password)
+    //   const response = await fetch('https://plugin-5vmd.onrender.com/login', {
+    //     method: 'POST',
+    //     body: formData
+    //   })
+
+    //   const data = await response.json()
+
+    //   if (!response.ok) {
+    //     throw new Error(data.message || 'Authentication failed')
+    //   }
+
+    //   // Store the JWT token
+    //   localStorage.setItem('token', data.token)
+      
+    //   // Start animation
+    //   setIsAnimating(true)
+    //   await login()
+
+    //   // Wait for animation to complete before navigating
+    //   setTimeout(() => {
+    //     navigate('/')
+    //   }, 1000)
+    // } catch (err) {
+    //   setError(err.message || 'An error occurred during sign in')
+    //   setIsAnimating(false)
+    // } finally {
+    //   setIsLoading(false)
+    // }
   }
 
   return (
@@ -136,7 +150,7 @@ export default function SignIn() {
 
               <p className="text-gray-400 text-center text-lg mt-8">
                 Don't have an account?{' '}
-                <Link to='/signup' className="text-purple-500 hover:text-purple-400 transition-colors">
+                <Link className="text-purple-500 hover:text-purple-400 transition-colors">
                   Sign Up
                 </Link>
               </p>

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader } from "../components/ui/card";
-import { Mic, Video, Volume2, Square, Circle, Loader } from "lucide-react";
+import { Mic, Video, Volume2, Square, Circle, Loader, Bot, FileText } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
@@ -27,6 +27,8 @@ const Interview = () => {
   // console.log(title)
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [interviewType, setInterviewType] = useState('ai'); // 'ai' or 'static'
+
 
   useEffect(() => {
     initDB().catch(console.error);
@@ -46,7 +48,7 @@ const Interview = () => {
 
   const generateSpeech = async (data) => {
     setLoading(true);
-    const apiKey = "sk_17dc5ec3542697a213425f62f3ba91bfc4168cf0894e322d";
+    const apiKey = "sk_7643f88cbc9b618d781698b561cd118ef08fcb589277845c";
     const voiceId = "Xb7hH8MSUJpSbSDYk0k2";
     try {
       const response = await axios.post(
@@ -97,6 +99,14 @@ const Interview = () => {
     }
   };
 
+  const toggleInterviewType = () => {
+    setInterviewType(interviewType === 'ai' ? 'static' : 'ai');
+  };
+
+  // const canStartInterview = Object.values(deviceStatus).every(
+  //   (status) => status === true
+  // );
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -143,7 +153,7 @@ const Interview = () => {
         localStorage.setItem('interviewQuestions', JSON.stringify(updated));
         return updated;
       });
-      
+
       const formData = new FormData();
       formData.append("audio", audioBlob, "recording.wav");
       formData.append("previous", question);
@@ -158,7 +168,23 @@ const Interview = () => {
         throw new Error("Failed to submit recording");
       }
 
-      const result = await response.json();
+      let result;
+
+      if (interviewType === "ai") {
+        result = await response.json();
+      } else {
+        let formData = new FormData();
+        formData.append("domain", `${title}`);
+
+        let response = await fetch(
+          "https://plugin-5vmd.onrender.com/FirstQuestion",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+        result = await response.json();
+      }
 
       if (currentQuestionIndex === 2) {
         navigate("/feedback");
@@ -241,8 +267,8 @@ const Interview = () => {
   return (
     <div
       className={`${isInterviewStarted
-          ? "h-screen w-screen p-0 bg-black"
-          : "container mx-auto px-4 py-8 max-w-[90%]"
+        ? "h-screen w-screen p-0 bg-black"
+        : "container mx-auto px-4 py-8 max-w-[90%]"
         }`}
     >
       {!isInterviewStarted && (
@@ -429,6 +455,40 @@ const Interview = () => {
                   Check Camera
                 </Button>
               </div>
+
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 bg-indigo-100 rounded-lg">
+                    {interviewType === 'ai' ? (
+                      <Bot className="w-6 h-6 text-indigo-600" />
+                    ) : (
+                      <FileText className="w-6 h-6 text-indigo-600" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Interview Type</h3>
+                    <p className="text-sm text-gray-500">
+                      {interviewType === 'ai' ? 'AI-powered interview' : 'Static predefined questions'}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={toggleInterviewType}
+                  className="bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {interviewType === 'ai' ? (
+                    <>
+                      <Bot className="w-4 h-4 mr-2" />
+                      Adaptive Interview
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4 mr-2" />
+                      Static Interview
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -442,7 +502,7 @@ const Interview = () => {
             disabled={!canStartInterview || isBlurred}
             onClick={handleStartInterview}
           >
-            Start Interview
+            Start {interviewType === 'ai' ? 'Adaptive' : 'Static'} Interview
           </Button>
         </div>
       )}
