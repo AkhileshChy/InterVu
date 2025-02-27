@@ -48,7 +48,7 @@ const Interview = () => {
 
   const generateSpeech = async (data) => {
     setLoading(true);
-    const apiKey = "sk_7643f88cbc9b618d781698b561cd118ef08fcb589277845c";
+    const apiKey = "sk_cfd322d82956083e20bc611e4517127b0783a3280cb2f81d";
     const voiceId = "Xb7hH8MSUJpSbSDYk0k2";
     try {
       const response = await axios.post(
